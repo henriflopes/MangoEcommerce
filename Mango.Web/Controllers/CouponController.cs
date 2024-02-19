@@ -2,7 +2,6 @@
 using Mango.Web.Service.IService;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using System.Reflection;
 
 namespace Mango.Web.Controllers
 {
