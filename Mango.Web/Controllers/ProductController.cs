@@ -59,7 +59,7 @@ namespace Mango.Web.Controllers
 			return View(model);
 		}
 
-		public async Task<IActionResult> ProductUpdate(int productId)
+		public async Task<IActionResult> ProductEdit(int productId)
 		{
 
 			ResponseDto? response = await _productService.GetProductByIdAsync(productId);
@@ -78,7 +78,7 @@ namespace Mango.Web.Controllers
 		}
 
 		[HttpPost]
-		public async Task<IActionResult> ProductUpdate(ProductDto model)
+		public async Task<IActionResult> ProductEdit(ProductDto model)
 		{
 			if (ModelState.IsValid)
 			{
