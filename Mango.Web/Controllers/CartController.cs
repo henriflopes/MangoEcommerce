@@ -20,12 +20,6 @@ namespace Mango.Web.Controllers
 		public async Task<IActionResult> CartIndex()
 		{
 			var cart = await LoadCartDtoBasedOnLoggedInUser();
-
-			if (cart.CartDetails.Count() == 0)
-			{
-				return RedirectToAction("Index", "Home");
-			}
-
 			return View(cart);
 		}
 
