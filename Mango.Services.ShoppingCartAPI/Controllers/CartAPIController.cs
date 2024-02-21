@@ -80,13 +80,17 @@ namespace Mango.Services.ShoppingCartAPI.Controllers
         {
             try
             {
-                var cartFromDb = await _context.CartHeaders.FirstAsync(q => q.UserId == cartDto.CartHeader.UserId);
-                cartFromDb.CouponCode = cartDto.CartHeader.CouponCode;
-                _context.CartHeaders.Update(cartFromDb);
-                await _context.SaveChangesAsync();
+                var coupon = await _couponService.GetCoupon(cartDto.CartHeader.CouponCode);
 
-                _response.Result = true;
+                if (!string.IsNullOrEmpty(coupon.CouponCode) || string.IsNullOrEmpty(cartDto.CartHeader.CouponCode))
+                {
+					var cartFromDb = await _context.CartHeaders.FirstAsync(q => q.UserId == cartDto.CartHeader.UserId);
+					cartFromDb.CouponCode = cartDto.CartHeader.CouponCode;
+					_context.CartHeaders.Update(cartFromDb);
+					await _context.SaveChangesAsync();
 
+					_response.Result = true;
+				}
             }
             catch (Exception ex)
             {
