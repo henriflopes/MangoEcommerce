@@ -88,12 +88,12 @@ namespace Mango.Services.AuthAPI.Service
 				PhoneNumber = request.PhoneNumber
 			};
 
-
 			try
 			{
 				var result = await _userManager.CreateAsync(user, request.Password);
 				if (result.Succeeded)
 				{
+					await _userManager.AddToRoleAsync(user, request.Role);
 					return string.Empty;
 				}
 				else

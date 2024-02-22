@@ -1,5 +1,6 @@
 ﻿using Azure.Messaging.ServiceBus;
 using Mango.Services.EmailAPI.Models.Dto;
+using Mango.Services.EmailAPI.Services;
 using Newtonsoft.Json;
 using System.Text;
 
@@ -8,19 +9,25 @@ namespace Mango.Services.EmailAPI.Messaging
 	public class AzureServiceBusConsumer : IAzureServiceBusConsumer
 	{
 		private readonly IConfiguration _configuration;
+		private readonly EmailService _emailService;
 		private readonly string serviceBusConnectionString;
 		private readonly string emailCartQueue;
+		private readonly string emailNewUserQueue;
 
 		private ServiceBusProcessor _emailCartProcessor;
+		private ServiceBusProcessor _emailNewUserProcessor;
 
-		public AzureServiceBusConsumer(IConfiguration configuration)
+		public AzureServiceBusConsumer(IConfiguration configuration, EmailService emailService)
         {
 			_configuration = configuration;
+			_emailService = emailService;
 			serviceBusConnectionString = _configuration.GetValue<string>("ServiceBusConnectionString");
 			emailCartQueue = _configuration.GetValue<string>("TopicAndQueueNames:EmailShoppingCartQueue");
+			emailNewUserQueue = _configuration.GetValue<string>("TopicAndQueueNames:EmailNewUsersQueue");
 
 			var client = new ServiceBusClient(serviceBusConnectionString);
 			_emailCartProcessor = client.CreateProcessor(emailCartQueue);
+			_emailNewUserProcessor = client.CreateProcessor(emailNewUserQueue);
 		}
 
 		public async Task Start()
@@ -28,12 +35,19 @@ namespace Mango.Services.EmailAPI.Messaging
 			_emailCartProcessor.ProcessMessageAsync += OnEmailCartRequestReceived;
 			_emailCartProcessor.ProcessErrorAsync += ErrorHandler;
 			await _emailCartProcessor.StartProcessingAsync();
+
+			_emailNewUserProcessor.ProcessMessageAsync += OnEmailNewUserReceived;
+			_emailNewUserProcessor.ProcessErrorAsync += ErrorHandler;
+			await _emailNewUserProcessor.StartProcessingAsync();
 		}
 		
 		public async Task Stop()
 		{
 			await _emailCartProcessor.StopProcessingAsync();
 			await _emailCartProcessor.DisposeAsync();
+
+			await _emailNewUserProcessor.StopProcessingAsync();
+			await _emailNewUserProcessor.DisposeAsync();
 		}
 
 		private Task ErrorHandler(ProcessErrorEventArgs args)
@@ -53,18 +67,41 @@ namespace Mango.Services.EmailAPI.Messaging
 			try
 			{
 				//TODO - try to log email
+				await _emailService.EmailCartAndLog(cart);
+
 				//This is where the app asks for the ServiceBus to drop out the message from the Queue
 				await args.CompleteMessageAsync(args.Message);  
-
 			}
 			catch (Exception ex)
 			{
 
 				throw;
 			}
-
 		}
 
-		
+		private async Task OnEmailNewUserReceived(ProcessMessageEventArgs args)
+		{
+			//this is where you will receive the message
+			var message = args.Message;
+			var body = Encoding.UTF8.GetString(message.Body);
+
+			string email = JsonConvert.DeserializeObject<string>(body);
+
+			try
+			{
+				//TODO - try to log email
+				await _emailService.EmailNewUserAndLog(email);
+
+				//This is where the app asks for the ServiceBus to drop out the message from the Queue
+				await args.CompleteMessageAsync(args.Message);
+			}
+			catch (Exception ex)
+			{
+
+				throw;
+			}
+		}
+
+
 	}
 }
