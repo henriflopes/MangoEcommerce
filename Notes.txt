@@ -1,0 +1,29 @@
+
+	Layouts (Free):
+		https://adminlte.io/
+		
+	Log Observability:
+		https://datalust.co/seq
+		
+	NuGet Packages:
+		Microsoft.Extensions.Caching.Memory
+
+	Fonts:
+		https://fontawesome.com/search
+		
+	HTML Grid:
+		https://datatables.net/
+		
+	Hosts File:
+		C:\Windows\System32\drivers\etc
+		
+	Publish SQL Database Manually - Package Manager Console
+		Script-Migration -Idempotent (Use this script)
+		Script-Migration
+		
+		
+		
+
+
+73e24c22-1428-4e01-91ce-d077639c7525
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluQGFkbWluLmNvbSIsInN1YiI6IjczZTI0YzIyLTE0MjgtNGUwMS05MWNlLWQwNzc2MzljNzUyNSIsIm5hbWUiOiJhZG1pbkBhZG1pbi5jb20iLCJyb2xlIjoiQURNSU4iLCJuYmYiOjE3MDg3MTQwMTcsImV4cCI6MTcwOTMxODgxNywiaWF0IjoxNzA4NzE0MDE3LCJpc3MiOiJtYW5nby1hdXRoLWFwaSIsImF1ZCI6Im1hbmdvLWNsaWVudCJ9.x2MuX205scYDfhEMJuGMES_zaE0J5zSCUTaTd1GY9nU
