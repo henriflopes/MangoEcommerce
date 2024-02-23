@@ -1,5 +1,6 @@
 ﻿using Mango.Web.Models;
 using Mango.Web.Service.IService;
+using Mango.Web.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
@@ -30,6 +31,7 @@ namespace Mango.Web.Controllers
 		{
 			return View(await LoadCartDtoBasedOnLoggedInUser());
 		}
+
 
 		[HttpPost]
 		[ActionName("Checkout")]
@@ -70,6 +72,20 @@ namespace Mango.Web.Controllers
 
 		public async Task<IActionResult> Confirmation(int orderId)
 		{
+
+			ResponseDto? response = await _orderService.ValidateStripeSession(orderId);
+			if (response != null & response.IsSuccess)
+			{
+				OrderHeaderDto orderHeaderDto = JsonConvert.DeserializeObject<OrderHeaderDto>(response.Result.ToString());
+
+				if (orderHeaderDto.Status == OrderStatusSD.Approved) 
+				{ 
+					return View(orderId);
+				}
+			}
+
+			//redirect to some error page bases on status
+
 			return View(orderId);
 		}
 

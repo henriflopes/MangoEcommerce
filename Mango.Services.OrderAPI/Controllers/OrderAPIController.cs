@@ -54,6 +54,41 @@ namespace Mango.Services.OrderAPI.Controllers
 			return _response;
 		}
 
+
+		[Authorize]
+		[HttpPost("ValidateStripeSession")]
+		public async Task<ResponseDto> ValidateStripeSession([FromBody] int orderHeaderId)
+		{
+			try
+			{
+				OrderHeader orderHeader = _context.OrderHeaders.First(q => q.OrderHeaderId == orderHeaderId);
+
+				var service = new SessionService();
+				Session session = service.Get(orderHeader.StripeSessionId);
+
+				var paymentIntentService = new PaymentIntentService();
+				PaymentIntent paymentIntent = paymentIntentService.Get(orderHeader.PaymentIntentId);
+
+				if (paymentIntent.Status == IntentStatusSD.Succeeded)
+				{
+					//then payment was successful
+					orderHeader.PaymentIntentId = paymentIntent.Id;
+					orderHeader.Status = SD.Status_Approved;
+					await _context.SaveChangesAsync();
+
+					_response.Result = _mapper.Map<OrderHeaderDto>(orderHeader);
+				}
+
+			}
+			catch (Exception ex)
+			{
+				_response.Message = ex.Message;
+				_response.IsSuccess = false;
+			}
+
+			return _response;
+		}
+
 		[Authorize]
 		[HttpPost("CreateStripeSession")]
 		public async Task<ResponseDto> CreateStripeSession([FromBody] StripeRequestDto stripeRequestDto)
@@ -65,7 +100,16 @@ namespace Mango.Services.OrderAPI.Controllers
 					SuccessUrl = stripeRequestDto.ApprovedUrl,
 					CancelUrl = stripeRequestDto.CancelUrl,
 					LineItems = new List<SessionLineItemOptions>(),
-					Mode = "payment",
+					Mode = "payment"
+					
+				};
+
+				var discounts = new List<SessionDiscountOptions>()
+				{
+					new SessionDiscountOptions()
+					{
+						Coupon = stripeRequestDto.OrderHeader.CouponCode
+					}
 				};
 
 				foreach (var item in stripeRequestDto.OrderHeader.OrderDetails)
@@ -86,6 +130,11 @@ namespace Mango.Services.OrderAPI.Controllers
 					};
 
 					options.LineItems.Add(sessionItemLineItem);
+				}
+
+				if (stripeRequestDto.OrderHeader.Discount > 0)
+				{
+					options.Discounts = discounts;
 				}
 
 				var service = new SessionService();
