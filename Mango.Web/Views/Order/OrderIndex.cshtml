@@ -1,13 +1,50 @@
-﻿@model IEnumerable<OrderHeaderDto>
+﻿@{
+	var status = Context.Request.Query["status"];
+
+	var approved = "";
+	var readyforpickup = "";
+	var cancelled = "";
+	var all = "";
+
+	switch (status)
+	{
+		case "approved":
+			approved = "active text-white bg-secondary";
+			break;
+		case "readyforpickup":
+			readyforpickup = "active text-white bg-secondary";
+			break;
+		case "cancelled":
+			cancelled = "active text-white bg-secondary";
+			break;
+		case "all":
+			all = "active text-white bg-secondary";
+			break;
+	}
+}
 
 <div class="card shadow border-0 mt-4">
-	<div class="card-header bg-secondary bg-gradient m-lg-0 py-3">
+	<div class="card-header bg-secondary bg-gradient ml-0 py-3 d-flex justify-content-between">
 		<div class="row">
 			<h1 class="text-white">Order List</h1>
 		</div>
+		<ul class="list-group list-group-horizontal-sm pt-2">
+			<a style="text-decoration:none" asp-controller="Order" asp-action="OrderIndex" asp-route-status="approved">
+				<li class="list-group-item @approved">Approved</li>
+			</a>
+			<a style="text-decoration:none" asp-controller="Order" asp-action="OrderIndex" asp-route-status="readyforpickup">
+				<li class="list-group-item @readyforpickup">Ready for Pickup</li>
+			</a>
+			<a style="text-decoration:none" asp-controller="Order" asp-action="OrderIndex" asp-route-status="cancelled">
+				<li class="list-group-item @cancelled">Cancelled</li>
+			</a>
+			<a style="text-decoration:none" asp-controller="Order" asp-action="OrderIndex" asp-route-status="all">
+				<li class="list-group-item @all">All</li>
+			</a>
+		</ul>
 	</div>
 	<div class="card-body p-4">
-		<table class="table table-bordered table-striped pt-3" style="width:100%">
+		<table id="tblData" class="table table-bordered table-striped pt-3" style="width:100%">
 			<thead>
 				<tr>
 					<th class="text-center">ID</th>
@@ -17,42 +54,12 @@
 					<th class="text-center">Status</th>
 					<th class="text-center">Total</th>
 					<th class="text-center">Actions</th>
-				</trclass>
+					</trclass>
 			</thead>
-			<tbody>
-				@foreach (var item in Model)
-				{
-					<tr>
-						<td width="5%">
-							@Html.DisplayFor(modelItem => item.OrderHeaderId)
-						</td>
-						<td width="25%">
-							@Html.DisplayFor(modelItem => item.Email)
-						</td>
-						<td width="20%">
-							@Html.DisplayFor(modelItem => item.Name)
-						</td>
-						<td width="10%">
-							@Html.DisplayFor(modelItem => item.Phone)
-						</td>
-						<td width="10%">
-							@Html.DisplayFor(modelItem => item.Status)
-						</td>
-						<td class="text-center" width="10%">
-							@Html.DisplayFor(modelItem => item.OrderTotal)
-						</td>
-						<td width="8%">
-							<div class="w-75 btn-group" role="group">
-								<a asp-action="OrderDetails" asp-controller="Order" asp-route-orderId="@item.OrderHeaderId" class="btn btn-primary mx-2">
-									<i class="bi bi-pencil-square"></i>
-								</a>
-							</div>
-
-							
-						</td>
-					</tr>
-				}
-			</tbody>
 		</table>
 	</div>
 </div>
+
+@section Scripts {
+	<script src="~/js/order.js"></script>
+}

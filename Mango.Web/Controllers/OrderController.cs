@@ -12,11 +12,17 @@ namespace Mango.Web.Controllers
 		private readonly IOrderService _orderService;
 
 		public OrderController(IOrderService orderService)
-        {
+		{
 			_orderService = orderService;
 		}
 
-        public IActionResult OrderIndex()
+		public IActionResult OrderIndex()
+		{
+			return View();
+		}
+
+		[HttpGet]
+		public IActionResult GetAll(string status)
 		{
 			IEnumerable<OrderHeaderDto> orders;
 
@@ -31,16 +37,28 @@ namespace Mango.Web.Controllers
 			if (response != null && response.IsSuccess)
 			{
 				orders = JsonConvert.DeserializeObject<List<OrderHeaderDto>>(Convert.ToString(response.Result));
+				switch (status)
+				{
+					case "approved":
+						orders = orders.Where(w => w.Status == OrderStatusSD.Approved).ToList();
+						break;
+					case "readyforpickup":
+						orders = orders.Where(w => w.Status == OrderStatusSD.ReadyForPickup).ToList();
+						break;
+					case "cancelled":
+						orders = orders.Where(w => w.Status == OrderStatusSD.Cancelled).ToList();
+						break;
+				}
 			}
 			else
 			{
 				orders = new List<OrderHeaderDto>();
 			}
 
-			return View(orders);
+			return Json(new { data = orders });
 		}
-		
-		public async Task<IActionResult> OrderDetails(int orderId)
+
+		public async Task<IActionResult> OrderDetail(int orderId)
 		{
 			OrderHeaderDto order = new OrderHeaderDto();
 			string userId = User.Claims.Where(w => w.Type == JwtRegisteredClaimNames.Sub)?.FirstOrDefault()?.Value;
@@ -52,7 +70,7 @@ namespace Mango.Web.Controllers
 				order = JsonConvert.DeserializeObject<OrderHeaderDto>(Convert.ToString(response.Result));
 			}
 
-			if(!User.IsInRole(SD.RoleAdmin) && userId != order.UserId)
+			if (!User.IsInRole(SD.RoleAdmin) && userId != order.UserId)
 			{
 				return NotFound();
 			}
@@ -60,6 +78,49 @@ namespace Mango.Web.Controllers
 			return View(order);
 		}
 
+		[HttpPost("OrderReadyForPickup")]
+		public async Task<IActionResult> OrderReadyForPickup(int orderId)
+		{
+			var response = await _orderService.UpdateOrderStatus(orderId, OrderStatusSD.ReadyForPickup);
 
+			if (response != null && response.IsSuccess)
+			{
+
+				TempData["success"] = "Status updated successfuly";
+				return RedirectToAction(nameof(OrderDetail), new { orderId });
+			}
+
+			return View();
+		}
+
+		[HttpPost("CompleteOrder")]
+		public async Task<IActionResult> CompleteOrder(int orderId)
+		{
+			var response = await _orderService.UpdateOrderStatus(orderId, OrderStatusSD.Completed);
+
+			if (response != null && response.IsSuccess)
+			{
+
+				TempData["success"] = "Status updated successfuly";
+				return RedirectToAction(nameof(OrderDetail), new { orderId });
+			}
+
+			return View();
+		}
+
+		[HttpPost("CancelOrder")]
+		public async Task<IActionResult> CancelOrder(int orderId)
+		{
+			var response = await _orderService.UpdateOrderStatus(orderId, OrderStatusSD.Cancelled);
+
+			if (response != null && response.IsSuccess)
+			{
+
+				TempData["success"] = "Status updated successfuly";
+				return RedirectToAction(nameof(OrderDetail), new { orderId });
+			}
+
+			return View();
+		}
 	}
 }

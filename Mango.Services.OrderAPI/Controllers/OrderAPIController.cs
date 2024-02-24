@@ -118,15 +118,13 @@ namespace Mango.Services.OrderAPI.Controllers
 				var service = new SessionService();
 				Session session = service.Get(orderHeader.StripeSessionId);
 
-				//TODO: It has been commented on because the test API returns null in the PaymentIntentId attribute.
-				//var paymentIntentService = new PaymentIntentService();
-				//PaymentIntent paymentIntent = paymentIntentService.Get(orderHeader.PaymentIntentId);
+				var paymentIntentService = new PaymentIntentService();
+				PaymentIntent paymentIntent = paymentIntentService.Get(session.PaymentIntentId);
 
-				if //(paymentIntent.Status == IntentStatusSD.Succeeded)
-					(true)
+				if (paymentIntent.Status == IntentStatusSD.Succeeded)
 				{
 					//then payment was successful
-					orderHeader.PaymentIntentId = "id_fake_success_order"; //paymentIntent.Id;
+					orderHeader.PaymentIntentId = paymentIntent.Id;
 					orderHeader.Status = SD.Status_Approved;
 					await _context.SaveChangesAsync();
 					RewardsDto rewardsDto = new RewardsDto()
