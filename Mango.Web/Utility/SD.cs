@@ -21,5 +21,11 @@
 			PUT,
 			DELETE
 		}
+
+		public enum ContentType 
+		{ 
+			Json,
+			MultipartFormData
+		}
 	}
 }

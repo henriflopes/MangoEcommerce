@@ -27,7 +27,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mango.Services.EmailAPI", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mango.Services.OrderAPI", "Mango.Services.OrderAPI\Mango.Services.OrderAPI.csproj", "{0D845056-2FF1-42EC-BD84-7099728BAEEE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mando.Services.RewardAPI", "Mando.Services.RewardAPI\Mando.Services.RewardAPI.csproj", "{2851A09E-0156-4CF4-A7B6-2F7E504FCD77}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mando.Services.RewardAPI", "Mando.Services.RewardAPI\Mando.Services.RewardAPI.csproj", "{2851A09E-0156-4CF4-A7B6-2F7E504FCD77}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

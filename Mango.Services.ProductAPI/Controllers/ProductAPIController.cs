@@ -4,6 +4,7 @@ using Mango.Services.ProductAPI.Models;
 using Mango.Services.ProductAPI.Models.Dto;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq;
 
 namespace Mango.Services.ProductAPI.Controllers
 {
@@ -86,14 +87,36 @@ namespace Mango.Services.ProductAPI.Controllers
 
 		[HttpPost]
 		[Authorize(Roles = "ADMIN")]
-		public ResponseDto Post([FromBody] ProductDto productDto)
+		public ResponseDto Post(ProductDto productDto)
 		{
 			try
 			{
-				_context.Products.Add(_mapper.Map<Product>(productDto));
+				Product product = _mapper.Map<Product>(productDto);
+
+				_context.Products.Add(product);
 				_context.SaveChanges();
 
-				_response.Result = productDto;
+				if (productDto.Image != null)
+				{
+					string fileName = product.ProductId + Path.GetExtension(productDto.Image.FileName);
+					string filePath = @"wwwroot\ProductImages\" + fileName;
+					var filePatchDirectory = Path.Combine(Directory.GetCurrentDirectory(), filePath);
+					using (var fileStream = new FileStream(filePatchDirectory, FileMode.Create)) 
+					{
+						productDto.Image.CopyTo(fileStream);
+					}
+
+					var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.Value}{HttpContext.Request.PathBase.Value}";
+					product.ImageUrl = $"{baseUrl}/ProductImages/{fileName}";
+					product.ImageLocalPath = filePath;
+				}
+				else
+				{
+					product.ImageUrl = "https://placeholder.co/600x400";
+				}
+				_context.Products.Update(product);
+				_context.SaveChanges();
+				_response.Result = _mapper.Map<ProductDto>(productDto);
 			}
 			catch (Exception ex)
 			{
@@ -106,15 +129,42 @@ namespace Mango.Services.ProductAPI.Controllers
 
 		[HttpPut]
 		[Authorize(Roles = "ADMIN")]
-		public ResponseDto Put([FromBody] ProductDto productDto)
+		public ResponseDto Put(ProductDto productDto)
 		{
 			try
 			{
-				_context.Products.Update(_mapper.Map<Product>(productDto));
+                Product product = _mapper.Map<Product>(productDto);
+
+                if (productDto.Image != null)
+                {
+                    if (!string.IsNullOrEmpty(product.ImageLocalPath))
+                    {
+                        var oldFilePathDirectory = Path.Combine(Directory.GetCurrentDirectory(), product.ImageLocalPath);
+                        FileInfo file = new FileInfo(oldFilePathDirectory);
+                        if (file.Exists)
+                        {
+                            file.Delete();
+                        }
+                    }
+
+                    string fileName = product.ProductId + Path.GetExtension(productDto.Image.FileName);
+                    string filePath = @"wwwroot\ProductImages\" + fileName;
+                    var filePatchDirectory = Path.Combine(Directory.GetCurrentDirectory(), filePath);
+                    using (var fileStream = new FileStream(filePatchDirectory, FileMode.Create))
+                    {
+                        productDto.Image.CopyTo(fileStream);
+                    }
+
+                    var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.Value}{HttpContext.Request.PathBase.Value}";
+                    product.ImageUrl = $"{baseUrl}/ProductImages/{fileName}";
+                    product.ImageLocalPath = filePath;
+                }
+
+                _context.Products.Update(product);
 				_context.SaveChanges();
 
-				_response.Result = productDto;
-			}
+				_response.Result = _mapper.Map<ProductDto>(product);
+            }
 			catch (Exception ex)
 			{
 				_response.IsSuccess = false;
@@ -132,6 +182,15 @@ namespace Mango.Services.ProductAPI.Controllers
 			try
 			{
 				Product product = _context.Products.First(q => q.ProductId == id);
+				if (!string.IsNullOrEmpty(product.ImageLocalPath))
+				{
+					var oldFilePathDirectory = Path.Combine(Directory.GetCurrentDirectory(), product.ImageLocalPath);
+					FileInfo file = new FileInfo(oldFilePathDirectory);
+					if (file.Exists)
+					{
+						file.Delete();
+					}
+				}
 				_context.Products.Remove(product);
 				_context.SaveChanges();
 			}
