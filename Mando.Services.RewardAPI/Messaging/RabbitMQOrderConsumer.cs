@@ -13,17 +13,17 @@ namespace Mango.Services.RewardAPI.Messaging
 
 		private readonly IConfiguration _configuration;
 		private readonly RewardService _rewardService;
-		private readonly string? emailOrderExchange;
 		private readonly IConnection _connection;
 		private readonly IModel _channel;
-		string queueName = "RewardsUpdate";
+		private const string _orderCreated_RewardsUpdateQueue = "RewardsUpdateQueue";
+		private string _exchangeName = "";
 
 		public RabbitMQOrderConsumer(IConfiguration configuration, RewardService rewardService)
 		{
 			_configuration = configuration;
 			_rewardService = rewardService;
 
-			emailOrderExchange = _configuration.GetValue<string>("TopicAndQueueNames:OrderCreatedTopic");
+			_exchangeName = _configuration.GetValue<string>("TopicAndQueueNames:OrderCreatedTopic");
 
 			var factory = new ConnectionFactory
 			{
@@ -33,9 +33,9 @@ namespace Mango.Services.RewardAPI.Messaging
 			};
 			_connection = factory.CreateConnection();
 			_channel = _connection.CreateModel();
-			_channel.ExchangeDeclare(emailOrderExchange, ExchangeType.Direct);
-			queueName = _channel.QueueDeclare(queueName).QueueName;
-			_channel.QueueBind(queueName, emailOrderExchange, "");
+			_channel.ExchangeDeclare(_exchangeName, ExchangeType.Direct);
+			_channel.QueueDeclare(_orderCreated_RewardsUpdateQueue, false, false, false, null);
+			_channel.QueueBind(_orderCreated_RewardsUpdateQueue, _exchangeName, "RewardsUpdate");
 		}
 
 		protected override Task ExecuteAsync(CancellationToken stoppingToken)
@@ -51,7 +51,7 @@ namespace Mango.Services.RewardAPI.Messaging
 				_channel.BasicAck(ea.DeliveryTag, false);
 			};
 
-			_channel.BasicConsume(queueName + "Queue", false, consumer);
+			_channel.BasicConsume(_orderCreated_RewardsUpdateQueue, false, consumer);
 
 			return Task.CompletedTask;
 		}
