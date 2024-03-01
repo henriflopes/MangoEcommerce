@@ -27,7 +27,7 @@ namespace Mango.Services.EmailAPI.Messaging
 			serviceBusConnectionString = _configuration.GetValue<string>("ServiceBusConnectionString");
 			
 			emailCartQueue = _configuration.GetValue<string>("TopicAndQueueNames:EmailShoppingCartQueue");
-			emailNewUserQueue = _configuration.GetValue<string>("TopicAndQueueNames:EmailNewUsersQueue");
+			emailNewUserQueue = _configuration.GetValue<string>("TopicAndQueueNames:RegisterUserQueue");
 
 			orderCreated_Topic = _configuration.GetValue<string>("TopicAndQueueNames:OrderCreatedTopic");
 			orderCreated_Email_Subscription = _configuration.GetValue<string>("TopicAndQueueNames:OrderCreated_Email_Subscription");

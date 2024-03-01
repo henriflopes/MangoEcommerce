@@ -9,6 +9,7 @@ using Mango.Services.ShoppingCartAPI.Service.IService;
 using Mango.Services.ShoppingCartAPI.Service;
 using Mango.Services.ShoppingCartAPI.Utility;
 using Mango.MessageBus;
+using Mango.Services.ShoppingCartAPI.RabbitMQSender;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,7 +24,7 @@ builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<BackEndApiAuthenticationHttpClientHandler>();
 builder.Services.AddScoped<IProductService, ProductService>();
-builder.Services.AddScoped<IMessageBus, MessageBus>();
+builder.Services.AddScoped<IRabbitMQAuthMessageSender, RabbitMQAuthMessageSender>();
 builder.Services.AddHttpClient("Product", q => q.BaseAddress = new Uri(builder.Configuration["ServiceUrls:ProductAPI"])).AddHttpMessageHandler<BackEndApiAuthenticationHttpClientHandler>();
 builder.Services.AddScoped<ICouponService, CouponService>();
 builder.Services.AddHttpClient("Coupon", q => q.BaseAddress = new Uri(builder.Configuration["ServiceUrls:CouponAPI"])).AddHttpMessageHandler<BackEndApiAuthenticationHttpClientHandler>();
