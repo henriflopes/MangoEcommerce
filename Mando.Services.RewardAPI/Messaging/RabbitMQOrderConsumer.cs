@@ -16,7 +16,7 @@ namespace Mango.Services.RewardAPI.Messaging
 		private readonly string? emailOrderExchange;
 		private readonly IConnection _connection;
 		private readonly IModel _channel;
-		string queueName = "";
+		string queueName = "RewardsUpdate";
 
 		public RabbitMQOrderConsumer(IConfiguration configuration, RewardService rewardService)
 		{
@@ -33,7 +33,7 @@ namespace Mango.Services.RewardAPI.Messaging
 			};
 			_connection = factory.CreateConnection();
 			_channel = _connection.CreateModel();
-			_channel.ExchangeDeclare(emailOrderExchange, ExchangeType.Fanout);
+			_channel.ExchangeDeclare(emailOrderExchange, ExchangeType.Direct);
 			queueName = _channel.QueueDeclare(queueName).QueueName;
 			_channel.QueueBind(queueName, emailOrderExchange, "");
 		}
@@ -51,7 +51,7 @@ namespace Mango.Services.RewardAPI.Messaging
 				_channel.BasicAck(ea.DeliveryTag, false);
 			};
 
-			_channel.BasicConsume(queueName, false, consumer);
+			_channel.BasicConsume(queueName + "Queue", false, consumer);
 
 			return Task.CompletedTask;
 		}
