@@ -1,6 +1,6 @@
 ﻿namespace Mango.Services.ShoppingCartAPI.RabbitMQSender
 {
-	public interface IRabbitMQAuthMessageSender
+	public interface IRabbitMQCartMessageSender
 	{
 		void SendMessage(Object message, string queueName);
 	}

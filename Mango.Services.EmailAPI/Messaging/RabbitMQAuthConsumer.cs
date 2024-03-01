@@ -12,7 +12,6 @@ namespace Mango.Services.EmailAPI.Messaging
 
 		private readonly IConfiguration _configuration;
 		private readonly EmailService _emailService;
-		private readonly string? emailCartQueue;
 		private readonly string? registerUserQueue;
 		private readonly IConnection _connection;
 		private readonly IModel _channel;

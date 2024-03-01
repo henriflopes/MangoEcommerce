@@ -1,4 +1,5 @@
 ﻿
+using Mando.Services.EmailAPI.Message;
 using Mango.Services.EmailAPI.Models.Dto;
 using Mango.Services.EmailAPI.Services;
 using Newtonsoft.Json;
@@ -8,21 +9,22 @@ using System.Text;
 
 namespace Mango.Services.EmailAPI.Messaging
 {
-	public class RabbitMQCartConsumer : BackgroundService
+	public class RabbitMQOrderConsumer : BackgroundService
 	{
 
 		private readonly IConfiguration _configuration;
 		private readonly EmailService _emailService;
-		private readonly string? emailCartQueue;
+		private readonly string? emailOrderExchange;
 		private readonly IConnection _connection;
 		private readonly IModel _channel;
+		string queueName = "";
 
-		public RabbitMQCartConsumer(IConfiguration configuration, EmailService emailService)
+		public RabbitMQOrderConsumer(IConfiguration configuration, EmailService emailService)
 		{
 			_configuration = configuration;
 			_emailService = emailService;
 
-			emailCartQueue = _configuration.GetValue<string>("TopicAndQueueNames:EmailShoppingCartQueue");
+			emailOrderExchange = _configuration.GetValue<string>("TopicAndQueueNames:OrderCreatedTopic");
 
 			var factory = new ConnectionFactory
 			{
@@ -32,7 +34,9 @@ namespace Mango.Services.EmailAPI.Messaging
 			};
 			_connection = factory.CreateConnection();
 			_channel = _connection.CreateModel();
-			_channel.QueueDeclare(emailCartQueue, false, false, false, null);
+			_channel.ExchangeDeclare(emailOrderExchange, ExchangeType.Fanout);
+			queueName = _channel.QueueDeclare(queueName).QueueName;
+			_channel.QueueBind(queueName, emailOrderExchange, "");
 		}
 
 		protected override Task ExecuteAsync(CancellationToken stoppingToken)
@@ -43,19 +47,19 @@ namespace Mango.Services.EmailAPI.Messaging
 			consumer.Received += (ch, ea) =>
 			{
 				var content = Encoding.UTF8.GetString(ea.Body.ToArray());
-				CartDto cartDto = JsonConvert.DeserializeObject<CartDto>(content);
-				HandleMessage(cartDto).GetAwaiter().GetResult();
+				RewardsMessage rewardsMessage = JsonConvert.DeserializeObject<RewardsMessage>(content);
+				HandleMessage(rewardsMessage).GetAwaiter().GetResult();
 				_channel.BasicAck(ea.DeliveryTag, false);
 			};
 
-			_channel.BasicConsume(emailCartQueue, false, consumer);
+			_channel.BasicConsume(queueName, false, consumer);
 
 			return Task.CompletedTask;
 		}
 
-		private async Task HandleMessage(CartDto cartDto) 
+		private async Task HandleMessage(RewardsMessage rewardsMessage) 
 		{ 
-			_emailService.EmailCartAndLog(cartDto).GetAwaiter().GetResult();
+			_emailService.LogOrderPlaced(rewardsMessage).GetAwaiter().GetResult();
 		}
 	}
 }
