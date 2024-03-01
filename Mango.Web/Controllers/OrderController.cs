@@ -29,10 +29,10 @@ namespace Mango.Web.Controllers
 			IEnumerable<OrderHeaderDto> orders;
 
 			string userId = "";
-			if (User.IsInRole(SD.RoleAdmin))
-			{
+			//if (User.IsInRole(SD.RoleAdmin))
+			//{
 				userId = User.Claims.Where(w => w.Type == JwtRegisteredClaimNames.Sub)?.FirstOrDefault()?.Value;
-			}
+			//}
 
 			ResponseDto response = _orderService.GetAllOrder(userId).GetAwaiter().GetResult();
 

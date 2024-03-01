@@ -94,7 +94,6 @@ namespace Mango.Services.AuthAPI.Service
 				if (result.Succeeded)
 				{
 					await AssignRole(user.Email, request.Role);
-					//await _userManager.AddToRoleAsync(user, request.Role);
 					return string.Empty;
 				}
 				else
