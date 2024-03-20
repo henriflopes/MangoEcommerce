@@ -35,6 +35,7 @@ namespace Mango.Services.AuthAPI.Service
 				}
 
 				await _userManager.AddToRoleAsync(user, roleName);
+
 				return true;
 			}
 			return false;
